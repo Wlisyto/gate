@@ -81,13 +81,15 @@ COUNTRY_ZH = {
 }
 
 # 静态优选域名池
+DEFAULT_EDGE_HOSTS = [
+    "104.16.0.0:443",
+]
+
 EDGE_HOSTS = [
     h.strip()
-    for h in os.environ.get(
-        "EDGE_HOSTS",
-    ).split(",")
+    for h in os.environ.get("EDGE_HOSTS", "").split(",")
     if h.strip()
-]
+] or list(DEFAULT_EDGE_HOSTS)
 
 # 优选 API 地址配置 (支持逗号分隔多个，可配置在 GitHub Action Secret / Env 中)
 OPTIMAL_API = os.environ.get("OPTIMAL_API", "https://cf.090227.xyz/ct?ips=6&port=443,https://cf.090227.xyz/cu?port=443,https://cf.090227.xyz/cmcc?ips=8&port=443")
@@ -253,7 +255,7 @@ def get_combined_edge_hosts():
     """
     # 1. 优先读取 HOSTS_ENTRY 或 EDGE_HOSTS
     _entry = os.environ.get("HOSTS_ENTRY", "").strip()
-    static_hosts = [e.strip() for e in _entry.split(",") if e.strip()] if _entry else EDGE_HOSTS
+    static_hosts = [e.strip() for e in _entry.split(",") if e.strip()] if _entry else list(EDGE_HOSTS)
 
     # 2. 拉取优选 API 端点
     api_hosts = fetch_optimal_api_endpoints(OPTIMAL_API)
@@ -267,7 +269,13 @@ def get_combined_edge_hosts():
             combined.append(h)
 
     log("EDGE POOL", f"汇总入口地址池: 静态域名 {len(static_hosts)} 个, API 获取 {len(api_hosts)} 个, 合并有效入口共 {len(combined)} 个")
-    return combined if combined else EDGE_HOSTS
+
+    # 兜底: 任何一层都为空时, 至少保证有一个可用的入口地址, 否则 build_nodes_text 会 ZeroDivisionError
+    if not combined:
+        fallback = list(DEFAULT_EDGE_HOSTS)
+        log("EDGE POOL", f"入口池为空, 使用内置兜底: {fallback}")
+        return fallback
+    return combined
 
 # ---------------------------------------------------------------------------
 # 筛选 SSTP 节点
