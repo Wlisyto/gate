@@ -92,7 +92,7 @@ EDGE_HOSTS = [
 ] or list(DEFAULT_EDGE_HOSTS)
 
 # 优选 API 地址配置 (支持逗号分隔多个，可配置在 GitHub Action Secret / Env 中)
-OPTIMAL_API = os.environ.get("OPTIMAL_API", "https://cf.090227.xyz/ct?ips=6&port=443,https://cf.090227.xyz/cu?port=443,https://cf.090227.xyz/cmcc?ips=8&port=443")
+OPTIMAL_API = os.environ.get("OPTIMAL_API", "https://090227.pages.dev/bestcf?isp=all&ips=20&port=443,https://raw.githubusercontent.com/LancelotRar/best-cf-ips/refs/heads/main/best-cf-ip-scanned-top50.txt")
 
 NODES_URL = os.environ.get("NODES_URL", "https://Wlisyto.github.io/gate/nodes.txt")
 
